@@ -1,0 +1,198 @@
+{% extends 'base.html' %}
+{% block page-main %}
+    <div class="article-detail">
+        <h1 style="text-align: center;font-weight: bold">{{ article.title }}</h1>
+        <p>{{ article.articledetail.content|safe }}</p>
+    </div>
+
+    <!--点赞开始-->
+
+    <div class="poll clearfix">
+        <div id="div_digg">
+            <div class="diggit action">
+                <span class="diggnum" id="digg_count">{{ article.up_count }}</span>
+            </div>
+            <div class="buryit action">
+                <span class="burynum" id="bury_count">{{ article.down_count }}</span>
+            </div>
+            <div class="clear"></div>
+            <div class="diggword" id="digg_tips" style="color: red;"></div>
+        </div>
+        <div class="info" username="{{ request.user.username }}"></div>
+    </div>
+    <!--点赞结束-->
+
+
+    <!--评论开始-->
+    <p>评论树</p>
+
+    <ul class="comment_tree list-group">
+
+    </ul>
+
+    <p>评论列表</p>
+    <ul class="comment_list">
+        {% for comment in comment_list %}
+            <li class="list-group-item">
+                <div>
+                    <a href="">#{{ forloop.counter }}楼</a> &nbsp;&nbsp;
+                    <span style="color: gray">{{ comment.create_time|date:"Y-m-d H:i" }}</span> &nbsp;&nbsp;
+                    <a href=""><span>{{ comment.user.username }}</span></a>
+                    <a class="pull-right reply_btn" username="{{ comment.user.username }}"
+                       comment_pk="{{ comment.nid }}"><span>回复</span></a>
+                </div>
+
+                {% if comment.parent_comment_id %}
+                    <div class="pid-info well">
+                        <p>{{ comment.parent_comment.user.username }}:&nbsp;&nbsp;&nbsp;{{ comment.parent_comment.content }}</p>
+                    </div>
+                {% endif %}
+
+                <div class="con">
+                    <p>
+                        {{ comment.content }}
+                    </p>
+                </div>
+            </li>
+        {% endfor %}
+    </ul>
+
+    {% if request.user.username %}
+        <div class="div_comment">
+            <p>
+                昵称：<input type="text" id="tbCommentAuthor" class="author" disabled="disabled" size="50"
+                          value="{{ request.user.username }}">
+            </p>
+            <p>评论内容</p>
+            <textarea name="" id="comment_content" cols="60" rows="10">
+
+        </textarea>
+            <p>
+                <button id="comment_btn">提交评论</button>
+            </p>
+        </div>
+    {% else %}
+        <a href="/login/">评论前需要登录</a>
+    {% endif %}
+
+
+    <!--评论结束-->
+
+    {% csrf_token %}
+    <script>
+        $.ajax({
+            url:"blog/comment_tree/{{ article.pk }}/",
+            success:function (data) {
+                console.log(data);
+                $.each(data,function (index,comment_dict) {
+                    if(comment_dict.parent_comment_id){
+                        //子评论
+                        var s = '<li class="list-group-item comment_item" comment_id=' + comment_dict.pk + '> <span class="content">' + comment_dict.content + '</span> </li>'
+                        pid=comment_dict.parent_comment_id;
+
+                        //利用属性选择器找到comment_id=父ID的DIV，然后添加进去
+                        $("[comment_id="+pid+"]").append(s)
+                    }else{
+                        //根评论直接添加到评论树的div中
+                        var s = '<li class="well list-group-item comment_item" comment_id=' + comment_dict.pk + '> <span class="content">' + comment_dict.content + '</span> </li>'
+                        $(".comment_tree").append(s)
+                    }
+                })
+            }
+        })
+
+        $("#div_digg .action").click(function () {
+            //点赞或者踩灭
+            if ($(".info").attr("username")) {
+                var is_up = $(this).hasClass("diggit");
+                var article_id = "{{ article.pk }}";
+                $.ajax({
+                    url: "/blog/up_down/",
+                    type: "post",
+                    data: {
+                        is_up: is_up,
+                        article_id: article_id,
+                        csrfmiddlewaretoken: $("[name='csrfmiddlewaretoken']").val(),
+                    },
+                    success: function (data) {
+                        if (data.status) {
+                            //提交过去数据
+                            if (is_up) {
+                                var val = $("#digg_count").text();
+                                val = parseInt(val) + 1;
+                                $("#digg_count").text(val);
+                            } else {
+                                var val = $("#bury_count").text();
+                                val = parseInt(val) + 1;
+                                $("#bury_count").text(val);
+
+                            }
+                        } else {  //重复提交
+                            if (data.first_action) {
+                                $("#digg_tips").text("您已经推荐过了")
+                            } else {
+                                $("#digg_tips").text("您已经反对过了")
+                            }
+                            setTimeout(function () {
+                                $("#digg_tips").html("")
+                            }, 2000)
+
+                        }
+                    }
+                })
+            } else {
+                location.href = "/login/"
+            }
+
+        })
+
+        //提交评论
+        var pid = "";
+        $("#comment_btn").click(function () {
+            var article_id = "{{ article.pk }}";
+            var content = $("#comment_content").val();
+            if (pid) {
+                var index = content.indexOf("\n")
+                content = content.slice(index + 1)
+            }
+            $.ajax({
+                url: "/blog/comment/",
+                type: "post",
+                data: {
+                    article_id: article_id,
+                    pid: pid,
+                    content: content,
+                    csrfmiddlewaretoken: $("[name='csrfmiddlewaretoken']").val(),
+                },
+                success: function (data) {
+                    var create_time = data.create_time;
+                    var content_1 = data.content;
+                    var username = data.username;
+                    console.log(data.content)
+                    //评论完清空评论框
+                    var content = $("#comment_content").val("");
+
+                    //发送完应该清空父ID，不然不刷新的话即使没回复也有pid
+                    pid = "";
+
+                    //取到这个LI标签，从数据库取到必要的内容拼接取来，然后生成一个新的DOM
+                    var comment_li = '<li class="list-group-item"><div><span style="color: gray">' + create_time + '</span> &nbsp;&nbsp; <a href=""><span>' + username + '</span></a></div> <div class="con"> <p> ' + content_1 + ' </p> </div> </li>';
+
+                    //添加一个dom操作。
+                    $(".comment_list").append(comment_li);
+
+                }
+            })
+        })
+
+        //回复按钮事件
+        $(".list-group-item .reply_btn").click(function () {
+            $("#comment_content").focus();
+            var v = "@" + $(this).attr("username") + "\n";
+            $("#comment_content").val(v);
+            //获取PID
+            pid = $(this).attr("comment_pk")
+        })
+
+    </script>
+{% endblock %}

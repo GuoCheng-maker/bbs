@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>欢迎登录</title>
+    <link rel="stylesheet" href="/static/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/js/mystyle.css">
+    <style>
+        body{
+            background: url(https://www.cnblogs.com/skins/UnlimitedSunlight/images/banner.jpg) fixed;
+            background-repeat: no-repeat;
+            background-color: #e2ddc7;
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+    <div class="row">
+        <h1 style="font-size: 60px;text-align: center">欢迎登陆</h1>
+        <form class="form-horizontal col-md-6 col-md-offset-3 login-form">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="username" class="col-sm-2 control-label">用户名</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" id="username" name="username" placeholder="请输入用户名">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="password" class="col-sm-2 control-label">密码</label>
+                <div class="col-sm-10">
+                    <input type="password" class="form-control" id="password" name="password" placeholder="请输入密码">
+                </div>
+            </div>
+            <div class="form-group">
+                <!-- 放置极验的滑动验证码 -->
+                <div id="popup-captcha"></div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-10">
+                    <button style="margin-left: 41%" type="button" class="btn btn-success" id="login-button">登录</button>
+                    <span class="login-error"></span>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="/static/js/jquery-3.3.1.js"></script>
+<script src="/static/bootstrap/js/bootstrap.min.js"></script>
+<!-- 背景动画 -->
+<script type="text/javascript" color="0,0,255" opacity='0.7' zIndex="-2" count="99" src="https://blog-static.cnblogs.com/files/geogre123/canvas-nest.js"></script>
+<!-- 引入封装了failback的接口--initGeetest -->
+<script src="http://static.geetest.com/static/tools/gt.js"></script>
+<script>
+
+    // 极验 发送登录数据的
+    var handlerPopup = function (captchaObj) {
+        // 成功的回调
+        captchaObj.onSuccess(function () {
+            var validate = captchaObj.getValidate();
+            // 1. 取到用户填写的用户名和密码 -> 取input框的值
+            var username = $("#username").val();
+            var password = $("#password").val();
+            $.ajax({
+                url: "/login/", // 进行二次验证
+                type: "post",
+                dataType: "json",
+                data: {
+                    username: username,
+                    password: password,
+                    csrfmiddlewaretoken: $("[name='csrfmiddlewaretoken']").val(),
+                    geetest_challenge: validate.geetest_challenge,
+                    geetest_validate: validate.geetest_validate,
+                    geetest_seccode: validate.geetest_seccode
+                },
+                success: function (data) {
+                    console.log(data);
+                    if (data.status) {
+                        // 有错误，在页面上提示
+                        $(".login-error").text(data.msg);
+                    } else {
+                        // 登陆成功
+                        location.href = data.msg;
+                    }
+                }
+            });
+        });
+
+        $("#login-button").click(function () {
+            captchaObj.show();
+        });
+        // 将验证码加到id为captcha的元素里
+        captchaObj.appendTo("#popup-captcha");
+        // 更多接口参考：http://www.geetest.com/install/sections/idx-client-sdk.html
+    };
+
+    // 验证开始需要向网站主后台获取id，challenge，success（是否启用failback）
+    $.ajax({
+        url: "/pc-geetest/register?t=" + (new Date()).getTime(), // 加随机数防止缓存
+        type: "get",
+        dataType: "json",
+        success: function (data) {
+            // 使用initGeetest接口
+            // 参数1：配置参数
+            // 参数2：回调，回调的第一个参数验证码对象，之后可以使用它做appendTo之类的事件
+            initGeetest({
+                gt: data.gt,
+                challenge: data.challenge,
+                product: "popup", // 产品形式，包括：float，embed，popup。注意只对PC版验证码有效
+                offline: !data.success // 表示用户后台检测极验服务器是否宕机，一般不需要关注
+                // 更多配置参数请参见：http://www.geetest.com/install/sections/idx-client-sdk.html#config
+            }, handlerPopup);
+        }
+    });
+
+    // 当input框获取焦点时将之前的错误清空
+    $("#username,#password").focus(function () {
+        // 将之前的错误清空
+        $(".login-error").text("");
+    });
+</script>
+</body>
+</html>

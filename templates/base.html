@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/static/js/mystyle.css">
+    <link rel="stylesheet" href="/static/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/fontawesome/css/font-awesome.css">
+    <link rel="stylesheet" href="/static/theme/{{ blog.theme }}">
+    <script src="/static/js/jquery-3.3.1.js"></script>
+    <script src="/static/bootstrap/js/bootstrap.min.js"></script>
+    <title>{{ blog.title }}</title>
+</head>
+<body>
+<div class="header">
+    <p style="padding-left: 25px">{{ blog.title }}</p>
+</div>
+
+<div class="container">
+    <div class="col-md-3">
+        {% load my_tags %}
+        {% get_left_menu username %}
+    </div>
+    <div class="col-md-8">
+        {% block page-main %}
+        {% endblock %}
+        <!---个人博客开始-->
+    </div>
+</div>
+</body>
+</html>

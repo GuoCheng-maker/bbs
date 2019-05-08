@@ -1,0 +1,14 @@
+
+.glyphicon-comment {
+    vertical-align: -1px;
+}
+
+.menu {
+    font-size: 12px;
+    display: block;
+    background: darkgray;
+    color: #fff;
+    height: 20px;
+    width: 50px;
+    text-align: center;
+}

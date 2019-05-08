@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/static/js/mystyle.css">
+    <link rel="stylesheet" href="/static/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/fontawesome/css/font-awesome.css">
+    <link rel="stylesheet" href="/static/theme/{{ blog.theme }}">
+    <link rel="stylesheet" href="/static/sweetalert/sweetalert.css">
+
+    <title>后台管理</title>
+</head>
+<body>
+<div class="header">
+    <div class="site-header">
+        <nav class="navbar navbar-inverse">
+            <div class="container-fluid">
+                <div class="navbar-header">
+                </div>
+                <a class="navbar-brand" href="/index/">博客小屋</a>
+            </div>
+        </nav>
+    </div>
+</div>
+
+<div class="container">
+    <div class="col-md-3">
+        <div class="panel panel-default">
+            <div class="panel-heading">操作</div>
+            <div class="panel-body">
+                <a href="/backend/add_article/">添加文章</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="tab-content">
+            <div class="article_list small">
+                <table class="table table-hover table-striped">
+                    {% csrf_token %}
+                    <thead>
+                    <th>序号</th>
+                    <th>标题</th>
+                    <th>评论数</th>
+                    <th>点赞数</th>
+                    <th>操作</th>
+                    <th>操作</th>
+                    </thead>
+
+                    <tbody>
+                    {% for article in article_list %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td class="article_id" style="display: none">{{ article.nid }}</td>
+                            <td>
+                                <a href="/blog/{{ request.user.username }}/article/{{ article.nid }}">{{ article.title }}</a>
+                            </td>
+                            <td>{{ article.comment_count }}</td>
+                            <td>{{ article.up_count }}</td>
+                            <td><a href="/backend/edit_article/{{ article.pk }}">编辑</a></td>
+                            <td><a class="delete" style="cursor: pointer;">删除</a></td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="/static/js/jquery-3.3.1.js"></script>
+<script src="/static/bootstrap/js/bootstrap.min.js"></script>
+<script src="/static/sweetalert/sweetalert.min.js"></script>
+<script type="text/javascript">
+    $(function () {
+        $('tr').on('click', 'td a.delete', function (e) {
+            var article_id = $(e.target).parent().siblings('.article_id').html();
+            var $trEle = $(this).parent().parent();
+            swal({
+                    title: "你确定要删除吗？",
+                    text: "文章删除后不可恢复",
+                    type: "info",
+                    showCancelButton: true,
+                    confirmButtonClass: "btn-info",
+                    confirmButtonText: "确认",
+                    cancelButtonText: "取消",
+                    closeOnConfirm: false,
+                    showLoaderOnConfirm: true
+                },
+                function () {
+                    // 向后端发送删除的请求
+                    $.ajax({
+                        url: '/delete/',
+                        type: 'post',
+                        data: {
+                            "csrfmiddlewaretoken": $("[name='csrfmiddlewaretoken']").val(),
+                            article_id: article_id
+                        },
+                        success: function (data) {
+                            if (data.status) {
+                                swal("删除成功", "文章已经删除!", "success");
+                                $trEle.remove();
+                            }
+                            else {
+                                swal("删除失败", "取消成功!", "success");
+                            }
+                        }
+                    })
+                })
+
+        })
+
+    })
+</script>
+</body>
+</html>
+

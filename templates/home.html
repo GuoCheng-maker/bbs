@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block page-main %}
+
+    <div class="article-list">
+            {% for article in article_list %}
+                <div class="article">
+                    <p class="article-title"><a href="/blog/{{ article.user.username }}/article/{{ article.pk }}">{{ article.title }}</a></p>
+                    <div class="media">
+                        <div class="media-left">
+                            <a >
+                                <img class="media-object author-img" src="/media/{{ article.user.avatar }}">
+                            </a>
+                        </div>
+                        <div class="media-body">
+                            <p>{{ article.desc }}</p>
+                        </div>
+                    </div>
+                    <div class="article-footer">
+                        <span><a href="/blog/{{ article.user.username }}">{{ article.user.username }}</a></span>
+                        <span>发布于{{ article.create_time|date:'Y-m-d H:i:s' }}</span>
+                        <span><i class="fa fa-commenting" aria-hidden="true"></i>评论({{ article.comment_count }})</span>
+                        <span><i class="fa fa-thumbs-o-up" aria-hidden="true"></i>点赞({{ article.up_count }})</span>
+                    </div>
+                    <hr>
+                </div>
+            {% endfor %}
+            <!---个人博客列表结束-->
+        </div>
+{% endblock %}

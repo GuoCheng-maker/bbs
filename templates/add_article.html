@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>添加文章</title>
+    <style>
+        * {
+            margin: 0;
+        }
+
+        .content {
+            width: 80%;
+            margin: 20px auto;
+        }
+    </style>
+    <link rel="stylesheet" href="/static/bootstrap/css/bootstrap.min.css">
+    <script src="/static/js/jquery-3.3.1.js"></script>
+</head>
+<body>
+
+<div class="header">
+    <div class="site-header">
+        <nav class="navbar navbar-inverse">
+            <div class="container-fluid">
+                <div class="navbar-header">
+                </div>
+                <a class="navbar-brand" href="/index/">博客小屋</a>
+            </div>
+        </nav>
+    </div>
+</div>
+<div class="content">
+    <h3>添加文章</h3>
+    <form action="" method="post">
+        {% csrf_token %}
+        <div>
+            <label for="">文章标题</label>
+            <input type="text" name="title" class="form-control" style="width: 800px">
+        </div>
+
+        <div>
+            <p>内容(TinyMCE编辑器，支持拖放/粘贴上传图片) </p>
+            <textarea name="article_content" id="article_content" cols="60" rows="20"></textarea>
+        </div>
+        <input type="submit" class="btn btn-info">
+    </form>
+</div>
+
+<script charset="utf-8" src="/static/kindeditor/kindeditor-all.js"></script>
+<script>
+    KindEditor.ready(function (K) {
+        window.editor = K.create('#article_content', {
+            width: "800",
+            height: "500px",
+            resizeType: 0,
+            uploadJson: "/upload/",
+            extraFileUploadParams: {
+                csrfmiddlewaretoken: $("[name='csrfmiddlewaretoken']").val()
+            },
+            filePostName: "upload_img"
+
+        });
+    });
+</script>
+</body>
+</html>

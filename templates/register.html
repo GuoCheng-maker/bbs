@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>欢迎注册</title>
+    <link rel="stylesheet" href="/static/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/js/mystyle.css">
+    <style>
+        body {
+            background: url(https://www.cnblogs.com/skins/UnlimitedSunlight/images/banner.jpg) fixed;
+            background-repeat: no-repeat;
+            background-color: #e2ddc7;
+        }
+    </style>
+</head>
+<body>
+<h1 style="text-align: center;font-size: 40px;padding: 2%">账号注册</h1>
+<div class="container" style=" opacity:0.7;">
+    <div class="row">
+        <div class="col-md-6 col-md-offset-3">
+            <form novalidate action="/register/" method="post" class="form-horizontal reg-form" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="{{ form_obj.username.id_for_label }}" class="col-sm-3 control-label">{{ form_obj.username.label }}</label>
+                    <div class="col-sm-8">{{ form_obj.username }}<span class="help-block">{{ form_obj.username.errors.0 }}</span></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form_obj.password.id_for_label }}" class="col-sm-3 control-label">{{ form_obj.password.label }}</label>
+                    <div class="col-sm-8">{{ form_obj.password }}<span class="help-block">{{ form_obj.password.errors.0 }}</span></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form_obj.re_password.id_for_label }}" class="col-sm-3 control-label">{{ form_obj.re_password.label }}</label>
+                    <div class="col-sm-8">{{ form_obj.re_password }}<span class="help-block">{{ form_obj.re_password.errors.0 }}</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form_obj.email.id_for_label }}" class="col-sm-3 control-label">{{ form_obj.email.label }}</label>
+                    <div class="col-sm-8">{{ form_obj.email }}<span class="help-block">{{ form_obj.email.errors.0 }}</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">头像</label>
+                    <div class="col-sm-8">
+                        <label style="margin-left: 35%" for="id_avatar"><img id="avatar-img" src="/media/avatars/default.png" alt=""></label>
+                        <input accept="image/*" type="file" name="avatar" id="id_avatar" style="display: none">
+                        <span class="help-block"></span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="col-sm-offset-2 col-sm-10">
+                        <button style="margin-left: 41%" type="button" class="btn btn-warning" id="reg-submit">注册</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script src="/static/js/jquery-3.3.1.js"></script>
+<script src="/static/bootstrap/js/bootstrap.min.js"></script>
+<script>
+    // 找到头像的input标签绑定change事件
+    $("#id_avatar").change(function () {
+        // 1. 创建一个读取文件的对象
+        var fileReader = new FileReader();
+        // 取到当前选中的头像文件
+        // console.log(this.files[0]);
+        // 读取你选中的那个文件
+        fileReader.readAsDataURL(this.files[0]);  // 读取文件是需要时间的
+        fileReader.onload = function () {
+            // 2. 等上一步读完文件之后才 把图片加载到img标签中
+            $("#avatar-img").attr("src", fileReader.result);
+        };
+    });
+    // AJAX提交注册的数据
+    $("#reg-submit").click(function () {
+        // 取到用户填写的注册数据，向后端发送AJAX请求
+        var formData = new FormData();
+        formData.append("username", $("#id_username").val());
+        formData.append("password", $("#id_password").val());
+        formData.append("re_password", $("#id_re_password").val());
+        formData.append("email", $("#id_email").val());
+        formData.append("avatar", $("#id_avatar")[0].files[0]);
+        formData.append("csrfmiddlewaretoken", $("[name='csrfmiddlewaretoken']").val());
+
+        $.ajax({
+            url: "/register/",
+            type: "post",
+            processData: false,
+            contentType: false,
+            data: formData,
+            success: function (data) {
+                if (data.status) {
+                    // 有错误就展示错误
+                    // console.log(data.msg);
+                    // 将报错信息填写到页面上
+                    $.each(data.msg, function (k, v) {
+                        // console.log("id_"+k, v[0]);
+                        // console.log($("#id_"+k));
+                        $("#id_" + k).next("span").text(v[0]).parent().parent().addClass("has-error");
+                    })
+
+                } else {
+                    // 没有错误就跳转到指定页面
+                    location.href = data.msg;
+                }
+            }
+        })
+    });
+
+    // 将所有的input框绑定获取焦点的事件，将所有的错误信息清空
+    $("form input").focus(function () {
+        $(this).next().text("").parent().parent().removeClass("has-error");
+    });
+
+    //当框内失去焦点后，ajax发送到后端数据库监测用户名是否存在
+    $("#id_username").blur(function () {
+        var username = $("#id_username").val();
+        $.ajax({
+            url: "/check_username_exist/",
+            type: "get",
+            data: {"username": username},
+            success: function (data) {
+                if (data.status) {
+                    $("#id_username").next().text(data.msg).parent().parent().addClass("has-error");
+                }
+            }
+        })
+    })
+</script>
+</body>
+</html>

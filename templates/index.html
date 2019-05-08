@@ -1,0 +1,133 @@
+﻿<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>博客小屋</title>
+    <link rel="stylesheet" href="/static/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/js/mystyle.css">
+    <link rel="stylesheet" href="/static/fontawesome/css/font-awesome.css">
+    <link rel="stylesheet" href="/static/css/dcalendar.picker.css"/>
+    <style>
+        body {
+            background-color: #eeeeee;
+        }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-inverse">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                    data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/index/">博客小屋</a>
+        </div>
+
+        <!--  the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav">
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+                {% if request.user.username %}
+                    <li><a>{{ request.user.username }}</a></li>
+                    <li class="dropdown">
+                        <a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
+                           aria-expanded="false">个人中心 <span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            <li role="separator" class="divider"></li>
+                            <li><a href="/backend/">后台管理</a></li>
+                            <li><a href="/logout/">注销</a></li>
+                        </ul>
+                    </li>
+                {% else %}
+                    <li><a href="/login/">登录</a></li>
+                    <li><a href="/register/">注册</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>
+<!--主页面开始-->
+<div class="container">
+    <div class="row">
+    </div>
+    <div class="col-md-9">
+        <!--博文列表开始-->
+        <div class="article-list">
+            {% for article in article_list %}
+                <div class="article">
+                    <h3><a href="/blog/{{ article.user.username }}/article/{{ article.pk }}">{{ article.title }}</a>
+                    </h3>
+                    <div class="media">
+                        <div class="media-left">
+                            <a href="/blog/{{ article.user.username }}/article/{{ article.pk }}">
+                                <img class="media-object author-img" src="/media/{{ article.user.avatar }}">
+                            </a>
+                        </div>
+                        <div class="media-body">
+                            <p>{{ article.desc|safe }}</p>
+                        </div>
+                    </div>
+                    <div class="article-footer">
+                        <span><a href="/blog/{{ article.user.username }}">{{ article.user.username }}</a></span>
+                        <span>发布于{{ article.create_time|date:'Y-m-d H:i:s' }}</span>
+                        <span><i class="fa fa-commenting"
+                                 aria-hidden="true"></i>评论({{ article.comment_count }})</span>
+                        <span><i class="fa fa-thumbs-o-up" aria-hidden="true"></i>点赞({{ article.up_count }})</span>
+
+                    </div>
+                    <hr>
+                </div>
+            {% endfor %}
+            <!--博文列表结束-->
+            <nav>
+                <ul class="pagination">
+                    {{ pagination.page_html|safe }}
+                </ul>
+            </nav>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="panel panel-info">
+            <div class="panel-heading">公告</div>
+            <div class="panel-body">
+                <h5>欢迎来到博客小屋！</h5>
+            </div>
+
+        </div>
+        <div class="panel panel-warning">
+            <div class="panel-heading">日历</div>
+            <div class="panel-body">
+                <a href=""></a>
+                <table style="width: 220px;height: 120px" id='mycalendar' class='calendar'></table>
+            </div>
+        </div>
+        <div class="panel panel-info">
+            <div class="panel-heading">最受欢迎的博主</div>
+            <div class="panel-body">
+                {% for user in user_list %}
+                    <li style="list-style:none;margin-left: 15px"><a
+                            href="/blog/{{ user.username }}/">{{ user.username }}</a></li>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+<!--主页面结束-->
+<script src="/static/js/jquery-3.3.1.js"></script>
+<script src="/static/bootstrap/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="/static/js/dcalendar.picker.js"></script>
+<script>
+    $('#mydatepicker').dcalendarpicker();
+    $('#mydatepicker2').dcalendarpicker({
+        format: 'yyyy-mm-dd'
+    });
+    $('#mycalendar').dcalendar();
+</script>
+</body>
+</html>
