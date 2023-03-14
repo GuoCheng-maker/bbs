@@ -139,4 +139,4 @@ CREATE DATABASE `bbs`;
 
 ## 问题相关
 
-有任何问题欢迎提Issue,或者将问题描述发送至我邮箱 `guocheng@daixiaomi.com`.我会尽快解答.
+有任何问题欢迎提Issue,或者将问题描述发送至我邮箱 `guocheng6868@126.com`.我会尽快解答.
